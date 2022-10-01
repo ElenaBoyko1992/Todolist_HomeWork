@@ -39,7 +39,7 @@ export function AddItemForm(props: AddItemFormPropsType) {
                    error={!!error}
                    variant={"outlined"}
                    size={"small"}
-                   helperText={error && "Title is required!"}
+                   helperText={error}
 
         />
 
