@@ -14,12 +14,19 @@ import {Menu} from '@mui/icons-material';
 import {
     addTodolistAC,
     changeTodolistFilterAC,
-    changeTodolistTitleAC, fetchTodolistsThunk,
+    changeTodolistTitleAC, createTodolistTC, fetchTodolistsTC,
     FilterValuesType, getTodolistsAC,
-    removeTodolistAC,
+    removeTodolistAC, removeTodolistTC,
     TodolistDomainType
 } from './state/todolists-reducer'
-import {addTaskAC, changeTaskStatusAC, changeTaskTitleAC, removeTaskAC} from './state/tasks-reducer';
+import {
+    addTaskAC,
+    addTaskTC,
+    changeTaskStatusAC,
+    changeTaskTitleAC,
+    removeTaskAC,
+    updateTaskStatusTC
+} from './state/tasks-reducer';
 import {useDispatch, useSelector} from 'react-redux';
 import {AppRootStateType, useAppDispatch} from './state/store';
 import {TaskStatuses, TaskType, todolistsAPI} from './api/todolists-api'
@@ -42,13 +49,11 @@ function App() {
     }, []);
 
     const addTask = useCallback(function (title: string, todolistId: string) {
-        const action = addTaskAC(title, todolistId);
-        dispatch(action);
+        dispatch(addTaskTC(todolistId, title))
     }, []);
 
     const changeStatus = useCallback(function (id: string, status: TaskStatuses, todolistId: string) {
-        const action = changeTaskStatusAC(id, status, todolistId);
-        dispatch(action);
+        dispatch(updateTaskStatusTC(todolistId, id, status))
     }, []);
 
     const changeTaskTitle = useCallback(function (id: string, newTitle: string, todolistId: string) {
@@ -62,8 +67,7 @@ function App() {
     }, []);
 
     const removeTodolist = useCallback(function (id: string) {
-        const action = removeTodolistAC(id);
-        dispatch(action);
+        dispatch(removeTodolistTC(id))
     }, []);
 
     const changeTodolistTitle = useCallback(function (id: string, title: string) {
@@ -72,12 +76,11 @@ function App() {
     }, []);
 
     const addTodolist = useCallback((title: string) => {
-        const action = addTodolistAC(title);
-        dispatch(action);
+        dispatch(createTodolistTC(title))
     }, [dispatch]);
 
     useEffect(() => {
-        dispatch(fetchTodolistsThunk)
+        dispatch(fetchTodolistsTC())
     }, [])
 
     return (
