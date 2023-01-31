@@ -1,9 +1,14 @@
-import { AddTodolistActionType, RemoveTodolistActionType, SetTodolistsActionType } from './todolists-reducer'
-import { TaskPriorities, TaskStatuses, TaskType, todolistsAPI, UpdateTaskModelType } from '../../api/todolists-api'
-import { Dispatch } from 'redux'
-import { AppRootStateType } from '../../app/store'
-import { SetAppErrorActionType, setAppStatusAC, SetAppStatusActionType } from '../../app/app-reducer'
-import { handleServerAppError, handleServerNetworkError } from '../../utils/error-utils'
+import {
+    AddTodolistActionType,
+    ClearTodosAT,
+    RemoveTodolistActionType,
+    SetTodolistsActionType
+} from './todolists-reducer'
+import {TaskPriorities, TaskStatuses, TaskType, todolistsAPI, UpdateTaskModelType} from '../../api/todolists-api'
+import {Dispatch} from 'redux'
+import {AppRootStateType} from '../../app/store'
+import {SetAppErrorActionType, setAppStatusAC, SetAppStatusActionType} from '../../app/app-reducer'
+import {handleServerAppError, handleServerNetworkError} from '../../utils/error-utils'
 
 const initialState: TasksStateType = {}
 
@@ -34,6 +39,8 @@ export const tasksReducer = (state: TasksStateType = initialState, action: Actio
         }
         case 'SET-TASKS':
             return {...state, [action.todolistId]: action.tasks}
+        case 'CLEAR_TODOS':
+            return {}
         default:
             return state
     }
@@ -55,7 +62,7 @@ export const setTasksAC = (tasks: Array<TaskType>, todolistId: string) => ({
 } as const)
 
 // thunks
-export const fetchTasksTC = (todolistId: string) => (dispatch: Dispatch<ActionsType | SetAppStatusActionType>) => {
+export const fetchTasksTC = (todolistId: string) => (dispatch: FetchTasksDispatchType) => {
     dispatch(setAppStatusAC('loading'))
     todolistsAPI.getTasks(todolistId)
         .then((res) => {
@@ -134,6 +141,8 @@ export type UpdateDomainTaskModelType = {
 export type TasksStateType = {
     [key: string]: Array<TaskType>
 }
+export type SetTasksType = ReturnType<typeof setTasksAC>
+
 type ActionsType =
     | ReturnType<typeof removeTaskAC>
     | ReturnType<typeof addTaskAC>
@@ -141,5 +150,8 @@ type ActionsType =
     | AddTodolistActionType
     | RemoveTodolistActionType
     | SetTodolistsActionType
-    | ReturnType<typeof setTasksAC>
+    | SetTasksType
+    | ClearTodosAT
 type ThunkDispatch = Dispatch<ActionsType | SetAppStatusActionType | SetAppErrorActionType>
+export type FetchTasksDispatchType = Dispatch<ActionsType | SetAppStatusActionType>
+export type test = ReturnType<typeof fetchTasksTC>
