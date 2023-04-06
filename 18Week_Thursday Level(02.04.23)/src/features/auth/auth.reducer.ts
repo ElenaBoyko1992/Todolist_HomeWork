@@ -8,18 +8,21 @@ import {todolistsActions} from "features/TodolistsList/todolists-reducer";
 // First, create the thunk
 export const login = createAsyncThunk(
     'auth/login',
-    async (data: any, thunkAPI) => {
+    async (data: LoginParamsType, thunkAPI) => {
+        thunkAPI.dispatch(appActions.setAppStatus({status: 'loading'}))
         try {
             const response = await authAPI.login(data)
 
             if (response.data.resultCode === 0) {
-                thunkAPI.dispatch(authActions.setIsLoggedIn({isLoggedIn: true}))
                 thunkAPI.dispatch(appActions.setAppStatus({status: 'succeeded'}))
+                return {isLoggedIn: true}
             } else {
                 handleServerAppError(response.data, thunkAPI.dispatch)
+                return {isLoggedIn: false}
             }
         } catch (error: any) {
             handleServerNetworkError(error, thunkAPI.dispatch)
+            return {isLoggedIn: false}
         }
     }
 )
@@ -34,17 +37,12 @@ const slice = createSlice({
             state.isLoggedIn = action.payload.isLoggedIn
         }
     },
-    // extraReducers: builder => {
-    //     builder
-    //         .addCase(login.fulfilled, (state, action) => {
-    //
-    //             if (action.payload.resultCode === 0) {
-    //                 state.isLoggedIn = true
-    //             } else {
-    //                 handleServerAppError(action.payload, dispatch)
-    //             }
-    //         })
-    // }
+    extraReducers: builder => {
+        builder
+            .addCase(login.fulfilled, (state, action) => {
+                state.isLoggedIn = action.payload.isLoggedIn
+            })
+    }
 })
 
 export const authReducer = slice.reducer
