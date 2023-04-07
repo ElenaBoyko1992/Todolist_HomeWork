@@ -1,12 +1,18 @@
 import React from 'react'
-import {useFormik} from 'formik'
+import {FormikHelpers, useFormik} from 'formik'
 import {useSelector} from 'react-redux'
-import {login} from 'features/auth/auth.reducer'
-import {AppRootStateType} from '../../app/store'
+import {loginTC} from 'features/auth/auth.reducer'
 import {Navigate} from 'react-router-dom'
 import {useAppDispatch} from '../../hooks/useAppDispatch';
 import {Button, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Grid, TextField} from '@mui/material'
 import {selectIsLoggedIn} from "features/auth/auth.selectors";
+import {FieldErrorType} from "api/todolists-api";
+
+type FormValuesType = {
+    email: string
+    password: string
+    rememberMe: boolean
+}
 
 export const Login = () => {
     const dispatch = useAppDispatch()
@@ -32,8 +38,14 @@ export const Login = () => {
             password: '',
             rememberMe: false
         },
-        onSubmit: values => {
-            dispatch(login(values));
+        onSubmit: async (values: FormValuesType, formikHelpers: FormikHelpers<FormValuesType>) => {
+            const action = await dispatch(loginTC(values));
+            if (loginTC.rejected.match(action)) {
+                if (action.payload?.fieldsErrors?.length) {
+                    const error = action.payload?.fieldsErrors[0];
+                    formikHelpers.setFieldError(error.field, error.error)
+                }
+            }
         },
     })
 

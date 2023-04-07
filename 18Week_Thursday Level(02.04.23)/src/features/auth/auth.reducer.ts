@@ -1,28 +1,33 @@
-import {authAPI, LoginParamsType} from 'api/todolists-api'
+import {authAPI, FieldErrorType, LoginParamsType, ResponseType} from 'api/todolists-api'
 import {handleServerAppError, handleServerNetworkError} from 'utils/error-utils'
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {AppThunk} from 'app/store';
 import {appActions} from 'app/app-reducer';
 import {todolistsActions} from "features/TodolistsList/todolists-reducer";
+import {AxiosError} from "axios";
 
 // First, create the thunk
-export const login = createAsyncThunk(
+export const loginTC = createAsyncThunk<{ isLoggedIn: boolean }, LoginParamsType, { rejectValue: { errors: Array<string>, fieldsErrors?: Array<FieldErrorType> } }>(
     'auth/login',
-    async (data: LoginParamsType, thunkAPI) => {
+    async (data, thunkAPI) => {
         thunkAPI.dispatch(appActions.setAppStatus({status: 'loading'}))
         try {
-            const response = await authAPI.login(data)
+            const response: any = await authAPI.login(data)
 
             if (response.data.resultCode === 0) {
                 thunkAPI.dispatch(appActions.setAppStatus({status: 'succeeded'}))
                 return {isLoggedIn: true}
             } else {
                 handleServerAppError(response.data, thunkAPI.dispatch)
-                return {isLoggedIn: false}
+                return thunkAPI.rejectWithValue({
+                    errors: response.data.messages,
+                    fieldsErrors: response.data.fieldsErrors
+                })
             }
-        } catch (error: any) {
+        } catch (err) {
+            const error: AxiosError = err as AxiosError;
             handleServerNetworkError(error, thunkAPI.dispatch)
-            return {isLoggedIn: false}
+            return thunkAPI.rejectWithValue({errors: [error.message], fieldsErrors: undefined})
         }
     }
 )
@@ -39,7 +44,7 @@ const slice = createSlice({
     },
     extraReducers: builder => {
         builder
-            .addCase(login.fulfilled, (state, action) => {
+            .addCase(loginTC.fulfilled, (state, action) => {
                 state.isLoggedIn = action.payload.isLoggedIn
             })
     }
